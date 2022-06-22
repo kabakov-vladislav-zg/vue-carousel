@@ -216,7 +216,6 @@ export default {
 <style>
 .crs-container {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
 }
 .crs-scene, .crs-backstage, .crs-proscenium {
@@ -233,6 +232,8 @@ export default {
 .crs-backstage {
   --visible-items-width: calc(100% - var(--getters) * (var(--capacity) - 1));
   width: calc(var(--visible-items-width) / var(--capacity));
+  min-width: 0;
+  max-width: 100%;
 }
 
 .crs-proscenium {

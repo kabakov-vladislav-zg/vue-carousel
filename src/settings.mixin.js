@@ -8,8 +8,8 @@ export default {
     speed: { type: String, default: '0.25s' },
     justify: { type: String, default: 'start' },
     range: { type: Number, required: false },
-    draggable: { type: Boolean, defaults: true },
-    responsive: { type: Object, required: false },
+    draggable: { type: Boolean, default: true },
+    responsive: { type: Object, default() { return {}; } },
   },
   data() {
     return {
@@ -23,29 +23,27 @@ export default {
     };
   },
   created() {
-    console.log(this.$slots);
     this.setCssSettings();
   },
   mounted() {
-    console.log(this.$children);
-    console.log(this.$slots.previous);
     this.css = window.getComputedStyle(this.$el);
     this.setJsSettings();
   },
   beforeDestroy() {
     this.clearBreakpoints();
   },
+  computed: {
+    settings() {
+      const props = JSON.parse(JSON.stringify(this.$props));
+      const { responsive } = props;
+      delete props.responsive;
+    },
+  },
   watch: {
     breakpoints: {
       deep: true,
       handler(breakpoints) {
-        const settings = JSON.parse(JSON.stringify(this.$props));
-        if (breakpoints.length) {
-          const { responsive } = settings;
-          delete settings.responsive;
-          const current = breakpoints.filter((breakpoint) => breakpoint.state);
-          current.forEach((breakpoint) => Object.assign(settings, responsive[breakpoint.name]));
-        }
+        const settings = this.getSettings(breakpoints);
         this.setSettings(settings);
       },
     },
@@ -70,20 +68,21 @@ export default {
         'justify',
       ];
       const sss = (setting, breakpoint = '') => {
+        const mark = breakpoint ? `-${breakpoint}` : '';
         settings.forEach((name) => {
           if (setting[name]) {
-            sceneStyle[`--${name[0] + breakpoint}`] = setting[name];
+            sceneStyle[`--${name[0] + mark}`] = setting[name];
             if (breakpoint) {
-              sceneClass.push(`crs-${name[0] + breakpoint}`);
+              sceneClass.push(`crs-${name[0] + mark}`);
             }
           }
         });
       };
       sss(this.$props);
-      if (this.responsive) {
-        const keys = Object.keys(this.responsive);
-        keys.forEach((breakpoint) => {
-          sss(this.responsive[breakpoint], `-${breakpoint}`);
+      const breakpoints = Object.keys(this.responsive);
+      if (breakpoints.length) {
+        breakpoints.forEach((breakpoint) => {
+          sss(this.responsive[breakpoint], breakpoint);
         });
       }
       this.sceneStyle = sceneStyle;
@@ -91,8 +90,8 @@ export default {
     },
     setJsSettings() {
       this.clearBreakpoints();
-      if (this.responsive) {
-        let breakpoints = Object.keys(this.responsive);
+      let breakpoints = Object.keys(this.responsive);
+      if (breakpoints.length) {
         breakpoints = breakpoints.map(this.getBreakpoint);
         breakpoints.sort((a, b) => a.value - b.value);
         this.breakpoints = breakpoints;
@@ -103,6 +102,18 @@ export default {
     getBreakpoint(name) {
       const value = Number(this.css.getPropertyValue(`--${name}`));
       return new Breakpoint(name, value);
+    },
+    getSettings(breakpoints) {
+      let settings;
+      const { responsive, ...baseSettings } = JSON.parse(JSON.stringify(this.$props));
+      if (breakpoints.length) {
+        const current = breakpoints.filter(({ state }) => state);
+        const responsiveSettings = current.map(({ name }) => responsive[name]);
+        settings = Object.assign(baseSettings, ...responsiveSettings);
+      } else {
+        settings = baseSettings;
+      }
+      return settings;
     },
     setSettings({ justify, capacity, draggable }) {
       this.items = this.$slots.default;
