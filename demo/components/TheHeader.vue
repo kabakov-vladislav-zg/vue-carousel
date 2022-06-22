@@ -40,8 +40,8 @@ export default Vue.extend({
           to: '/api',
         },
         {
-          name: 'demo',
-          to: '/demo',
+          name: 'playground',
+          to: '/playground',
         },
         {
           name: 'cookbook',
