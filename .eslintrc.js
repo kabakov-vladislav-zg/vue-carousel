@@ -16,6 +16,7 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'import/no-extraneous-dependencies': 'off',
     'vuejs-accessibility/click-events-have-key-events': 'off',
+    'vuejs-accessibility/label-has-for': 'off',
   },
   overrides: [
     {
