@@ -2,13 +2,13 @@ import { Breakpoint } from './util';
 
 export default {
   props: {
-    getters: { type: String, default: '0' },
+    getters: { type: String, default: '0rem' },
     capacity: { type: [Number, String], default: 1 },
     padding: { type: String, default: '0' },
     speed: { type: String, default: '0.25s' },
     justify: { type: String, default: 'start' },
     range: { type: Number, required: false },
-    draggable: { type: Boolean, default: true },
+    draggable: { type: [Boolean, String], default: true },
     responsive: { type: Object, default() { return {}; } },
   },
   data() {
@@ -31,13 +31,6 @@ export default {
   },
   beforeDestroy() {
     this.clearBreakpoints();
-  },
-  computed: {
-    settings() {
-      const props = JSON.parse(JSON.stringify(this.$props));
-      const { responsive } = props;
-      delete props.responsive;
-    },
   },
   watch: {
     breakpoints: {
@@ -122,7 +115,7 @@ export default {
         isCentered: justify.trim() === 'center',
         capacity: Number(capacity),
       });
-      this.dragNDrop = draggable;
+      this.dragNDrop = (draggable === true) || (draggable.trim() === 'true');
     },
     clearBreakpoints() {
       this.breakpoints.forEach((breakpoint) => breakpoint.destroy());
